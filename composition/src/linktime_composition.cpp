@@ -21,6 +21,11 @@
 
 int main(int argc, char * argv[])
 {
+  // force flush of the stdout buffer.
+  // this ensures a correct sync of all prints
+  // even when executed simultaneously within a launch file.
+  setvbuf(stdout, NULL, _IONBF, BUFSIZ);
+
   rclcpp::init(argc, argv);
   rclcpp::executors::SingleThreadedExecutor exec;
   std::vector<class_loader::ClassLoader *> loaders;
