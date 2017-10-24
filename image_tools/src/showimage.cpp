@@ -55,7 +55,7 @@ encoding2mat_type(const std::string & encoding)
 // \param[in] msg The image message to show.
 void show_image(const sensor_msgs::msg::Image::SharedPtr msg, bool show_camera)
 {
-  printf("Received image #%s\n", msg->header.frame_id.c_str());
+  ROS_INFO("Received image #%s\n", msg->header.frame_id.c_str());
 
   if (show_camera) {
     // Convert to an OpenCV matrix by assigning the data.
@@ -136,7 +136,7 @@ int main(int argc, char * argv[])
       show_image(msg, show_camera);
     };
 
-  printf("Subscribing to topic '%s'\n", topic.c_str());
+  ROS_INFO_NAMED(node->get_name(), "Subscribing to topic '%s'\n", topic.c_str());
   // Initialize a subscriber that will receive the ROS Image message to be displayed.
   auto sub = node->create_subscription<sensor_msgs::msg::Image>(
     topic, callback, custom_qos_profile);

@@ -18,6 +18,10 @@ import rclpy
 
 from std_msgs.msg import String
 
+rclpy.logging.loginfo('asdf')
+logger = rclpy.logging.get_named_logger(__name__)
+# logger.set_severity_threshold(rclpy.logging.LoggingSeverity.DEBUG)
+
 
 class Talker(rclpy.Node):
 
@@ -27,12 +31,13 @@ class Talker(rclpy.Node):
         self.pub = self.create_publisher(String, 'chatter')
         timer_period = 1.0
         self.tmr = self.create_timer(timer_period, self.timer_callback)
+        logger.debug('Initialization complete')
 
     def timer_callback(self):
         msg = String()
         msg.data = 'Hello World: {0}'.format(self.i)
         self.i += 1
-        print('Publishing: "{0}"'.format(msg.data))
+        logger.info('Publishing: "{0}"'.format(msg.data))
         self.pub.publish(msg)
 
 
