@@ -48,8 +48,8 @@ int main(int argc, char ** argv)
   if (rcutils_cli_option_exist(argv, argv + argc, "-s")) {
     topic = std::string(rcutils_cli_get_option(argv, argv + argc, "-s"));
   }
-  auto handle_two_ints = [node](
-//    std::shared_ptr<rclcpp::node::Node> node,
+  auto handle_two_ints = [](
+    std::shared_ptr<rclcpp::node::Node> node,
     const std::shared_ptr<rmw_request_id_t> request_header,
     const std::shared_ptr<example_interfaces::srv::AddTwoInts::Request> request,
     std::shared_ptr<example_interfaces::srv::AddTwoInts::Response> response
@@ -62,7 +62,10 @@ int main(int argc, char ** argv)
       ROS_INFO_THROTTLE(node->get_name(), RCUTILS_STEADY_TIME, 5000, "%s", ss.str().c_str())
       response->sum = request->a + request->b;
     };
-    auto handler = handle_two_ints;//td::bind(handle_two_ints, _1, _2, _3);
+    std::function<void(
+    const std::shared_ptr<rmw_request_id_t> request_header,
+    const std::shared_ptr<example_interfaces::srv::AddTwoInts::Request> request,
+    std::shared_ptr<example_interfaces::srv::AddTwoInts::Response> response)> handler = std::bind(handle_two_ints, node, _1, _2, _3);
   auto server =
     node->create_service<example_interfaces::srv::AddTwoInts>(topic, handler);
 
