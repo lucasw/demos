@@ -74,21 +74,24 @@ int main(int argc, char ** argv)
   while (!client->wait_for_service(1s)) {
     if (!rclcpp::ok()) {
       // This will have <package_name>.<node_name> as the logger name.
-      ROS_INFO_NAMED(node->get_name(),
+      ROS_INFO(node->get_name(),
         "add_two_ints_client was interrupted while waiting for the service. Exiting.\n");
       return 0;
     }
-    ROS_INFO_NAMED(node->get_name(), "service not available, waiting again...\n");
+    ROS_INFO_ONCE(node->get_name(), "service not available, waiting again...\n");
   }
 
+while(rclcpp::ok()) {
   // TODO(wjwwood): make it like `client->send_request(node, request)->sum`
   // TODO(wjwwood): consider error condition
   auto result = send_request(node, client, request);
   if (result) {
-    ROS_INFO_NAMED(node->get_name(), "Result of add_two_ints: %zd\n", result->sum);
+    ROS_INFO_SKIPFIRST_THROTTLE(node->get_name(), RCUTILS_STEADY_TIME, 5000, "Result of add_two_ints: %zd\n", result->sum);
   } else {
-    ROS_INFO_NAMED(node->get_name(), "add_two_ints_client was interrupted. Exiting.\n");
+    ROS_INFO(node->get_name(), "add_two_ints_client was interrupted. Exiting.\n");
   }
+    ROS_INFO_ONCE(node->get_name(), "got service\n");
+}
 
   rclcpp::shutdown();
   return 0;

@@ -21,6 +21,7 @@
 
 #include "std_msgs/msg/string.hpp"
 
+using namespace std::placeholders;
 void print_usage()
 {
   printf("Usage for listener app:\n");
@@ -30,8 +31,9 @@ void print_usage()
   printf("-t topic_name : Specify the topic on which to subscribe. Defaults to chatter.\n");
 }
 
-void chatterCallback(const std_msgs::msg::String::SharedPtr msg)
+void chatterCallback(const std_msgs::msg::String::SharedPtr msg, std::shared_ptr<rclcpp::node::Node> this_node)
 {
+      ROS_INFO(this_node->get_name(), "hello\n")
   std::cout << "I heard: [" << msg->data << "]" << std::endl;
 }
 
@@ -39,6 +41,7 @@ int main(int argc, char * argv[])
 {
   rclcpp::init(argc, argv);
   auto node = rclcpp::Node::make_shared("listener");
+  auto node2 = rclcpp::Node::make_shared("listener2");
 
   if (rcutils_cli_option_exist(argv, argv + argc, "-h")) {
     print_usage();
@@ -49,10 +52,18 @@ int main(int argc, char * argv[])
   if (rcutils_cli_option_exist(argv, argv + argc, "-t")) {
     topic = std::string(rcutils_cli_get_option(argv, argv + argc, "-t"));
   }
-  auto sub = node->create_subscription<std_msgs::msg::String>(
-    topic, chatterCallback, rmw_qos_profile_default);
 
-  rclcpp::spin(node);
+std::function<void(const std_msgs::msg::String::SharedPtr)> mychatterCallback = std::bind(chatterCallback, _1, node);
+std::function<void(const std_msgs::msg::String::SharedPtr)> mychatterCallback2 = std::bind(chatterCallback, _1, node2);
+  auto sub = node->create_subscription<std_msgs::msg::String>(
+    topic, mychatterCallback, rmw_qos_profile_default);
+  auto sub2 = node2->create_subscription<std_msgs::msg::String>(
+    topic, mychatterCallback2, rmw_qos_profile_default);
+
+  rclcpp::executors::SingleThreadedExecutor exec;
+  exec.add_node(node);
+  exec.add_node(node2);
+  exec.spin();
 
   return 0;
 }

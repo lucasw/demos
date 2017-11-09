@@ -58,7 +58,7 @@ int main(int argc, char * argv[])
   while (rclcpp::ok()) {
     msg->data = "Hello World: " + std::to_string(i);
     // Pretend that the topic is how we want to separate our loggers for some reason
-    ROS_INFO_FULLNAMED(topic + "." + RCLCPP_CONSOLE_DEFAULT_NAME + "." + node->get_name(),
+    ROS_INFO(topic + "." + RCLCPP_CONSOLE_DEFAULT_NAME + "." + node->get_name(),
       "Publishing: '%d'", i);
     i++;
     chatter_pub->publish(msg);

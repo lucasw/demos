@@ -16,12 +16,14 @@
 #include <memory>
 #include <string>
 
+#include "rcutils/time.h"
 #include "rclcpp/rclcpp.hpp"
 #include "rcutils/logging_macros.h"
 #include "rcutils/cmdline_parser.h"
 
 #include "example_interfaces/srv/add_two_ints.hpp"
 
+using namespace std::placeholders;
 void print_usage()
 {
   printf("Usage for add_two_ints_server app:\n");
@@ -29,20 +31,6 @@ void print_usage()
   printf("options:\n");
   printf("-h : Print this help function.\n");
   printf("-s service_name : Specify the service name for this server. Defaults to add_two_ints.\n");
-}
-
-void handle_add_two_ints(
-  const std::shared_ptr<rmw_request_id_t> request_header,
-  const std::shared_ptr<example_interfaces::srv::AddTwoInts::Request> request,
-  std::shared_ptr<example_interfaces::srv::AddTwoInts::Response> response)
-{
-  (void)request_header;
-  std::stringstream ss;
-  ss << "Incoming request" << std::endl;
-  ss << "a: " << request->a << " b: " << request->b << std::endl;
-  // No stream log macro yet. This will get <package_name> as the logger name.
-  ROS_INFO("%s", ss.str().c_str())
-  response->sum = request->a + request->b;
 }
 
 int main(int argc, char ** argv)
@@ -60,8 +48,23 @@ int main(int argc, char ** argv)
   if (rcutils_cli_option_exist(argv, argv + argc, "-s")) {
     topic = std::string(rcutils_cli_get_option(argv, argv + argc, "-s"));
   }
+  auto handle_two_ints = [node](
+//    std::shared_ptr<rclcpp::node::Node> node,
+    const std::shared_ptr<rmw_request_id_t> request_header,
+    const std::shared_ptr<example_interfaces::srv::AddTwoInts::Request> request,
+    std::shared_ptr<example_interfaces::srv::AddTwoInts::Response> response
+  ) {
+      (void)request_header;
+      std::stringstream ss;
+      ss << "Incoming request" << std::endl;
+      ss << "a: " << request->a << " b: " << request->b << std::endl;
+      // No stream log macro yet. This will get <package_name> as the logger name.
+      ROS_INFO_THROTTLE(node->get_name(), RCUTILS_STEADY_TIME, 5000, "%s", ss.str().c_str())
+      response->sum = request->a + request->b;
+    };
+    auto handler = handle_two_ints;//td::bind(handle_two_ints, _1, _2, _3);
   auto server =
-    node->create_service<example_interfaces::srv::AddTwoInts>(topic, handle_add_two_ints);
+    node->create_service<example_interfaces::srv::AddTwoInts>(topic, handler);
 
   rclcpp::spin(node);
 
