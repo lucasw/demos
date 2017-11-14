@@ -20,6 +20,9 @@
 #include "rcutils/cmdline_parser.h"
 
 #include "example_interfaces/srv/add_two_ints.hpp"
+#include "test_msgs/srv/nested.hpp"
+
+using srv_type = rcl_interfaces::srv::SetParameters;
 
 void print_usage()
 {
@@ -32,13 +35,27 @@ void print_usage()
 
 void handle_add_two_ints(
   const std::shared_ptr<rmw_request_id_t> request_header,
-  const std::shared_ptr<example_interfaces::srv::AddTwoInts::Request> request,
-  std::shared_ptr<example_interfaces::srv::AddTwoInts::Response> response)
+  const std::shared_ptr<srv_type::Request> request,
+  std::shared_ptr<srv_type::Response> response)
 {
   (void)request_header;
+  (void)request;
+  (void)response;
+  //int idx = 1;
   std::cout << "Incoming request" << std::endl;
-  std::cout << "a: " << request->a << " b: " << request->b << std::endl;
-  response->sum = request->a + request->b;
+  std::cout << "Primitive value " << request->parameters[0].name << std::endl;
+  std::cout << "Primitive value " << request->parameters[0].value.integer_value << std::endl;
+  rcl_interfaces::msg::SetParametersResult result;
+  result.reason = request->parameters[0].name + "_Response";
+  result.successful = true;
+  response->results.push_back(result);
+  //test_msgs::msg::Primitives p;
+  //p.int32_value = request->primitives[idx].int32_value + 1;
+  //p.float32_value = request->primitives[idx].float32_value + 1.1;
+  //p.float64_value = request->primitives[idx].float64_value + 2.2;
+  //for (auto i = 0; i < idx+1; ++i) {
+  //  response->primitives.push_back(p);
+  //}
 }
 
 int main(int argc, char ** argv)
@@ -57,7 +74,7 @@ int main(int argc, char ** argv)
     topic = std::string(rcutils_cli_get_option(argv, argv + argc, "-s"));
   }
   auto server =
-    node->create_service<example_interfaces::srv::AddTwoInts>(topic, handle_add_two_ints);
+    node->create_service<srv_type>(topic, handle_add_two_ints);
 
   rclcpp::spin(node);
 

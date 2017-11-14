@@ -46,17 +46,17 @@ int main(int argc, char ** argv)
   // TODO(esteve): Make the parameter service automatically start with the node.
   auto parameter_service = std::make_shared<rclcpp::parameter_service::ParameterService>(node);
 
-  auto parameters_client = std::make_shared<rclcpp::parameter_client::SyncParametersClient>(node);
-  while (!parameters_client->wait_for_service(1s)) {
-    if (!rclcpp::ok()) {
-      printf("Interrupted while waiting for the service. Exiting.\n");
-      return 0;
-    }
-    printf("service not available, waiting again...\n");
-  }
+  //auto parameters_client = std::make_shared<rclcpp::parameter_client::SyncParametersClient>(node);
+  //while (!parameters_client->wait_for_service(1s)) {
+  //  if (!rclcpp::ok()) {
+  //    printf("Interrupted while waiting for the service. Exiting.\n");
+  //    return 0;
+  //  }
+  //  printf("service not available, waiting again...\n");
+  //}
 
   // Setup callback for changes to parameters.
-  auto sub = parameters_client->on_parameter_event(on_parameter_event);
+  //auto sub = parameters_client->on_parameter_event(on_parameter_event);
 
   rclcpp::spin(node);
 

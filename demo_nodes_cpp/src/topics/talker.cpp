@@ -20,6 +20,8 @@
 #include "rcutils/cmdline_parser.h"
 
 #include "std_msgs/msg/string.hpp"
+#include "test_msgs/msg/nested.hpp"
+#include "test_msgs/msg/dynamic_array_primitives.hpp"
 
 void print_usage()
 {
@@ -48,11 +50,17 @@ int main(int argc, char * argv[])
   if (rcutils_cli_option_exist(argv, argv + argc, "-t")) {
     topic = std::string(rcutils_cli_get_option(argv, argv + argc, "-t"));
   }
-  auto chatter_pub = node->create_publisher<std_msgs::msg::String>(topic, custom_qos_profile);
+
+  //using MessageT = test_msgs::msg::DynamicArrayPrimitives;
+  using MessageT = std_msgs::msg::String;
+  auto chatter_pub = node->create_publisher<MessageT>(topic, custom_qos_profile);
 
   rclcpp::WallRate loop_rate(2);
 
-  auto msg = std::make_shared<std_msgs::msg::String>();
+  auto msg = std::make_shared<MessageT>();
+  test_msgs::msg::Primitives p;
+  p.int32_value = 13;
+  //msg->int32_values.push_back(13);
   auto i = 1;
 
   while (rclcpp::ok()) {

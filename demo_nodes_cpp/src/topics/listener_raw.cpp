@@ -16,10 +16,12 @@
 #include <memory>
 #include <string>
 
+#include "rcl/types.h"
 #include "rclcpp/rclcpp.hpp"
 #include "rcutils/cmdline_parser.h"
 
 #include "std_msgs/msg/string.hpp"
+#include "test_msgs/msg/nested.hpp"
 
 void print_usage()
 {
@@ -30,9 +32,18 @@ void print_usage()
   printf("-t topic_name : Specify the topic on which to subscribe. Defaults to chatter.\n");
 }
 
-void chatterCallback(const std_msgs::msg::String::ConstSharedPtr msg)
+void chatterCallback_raw(const std::shared_ptr<rcl_message_raw_t> msg)
 {
-  std::cout << "I heard: [" << msg->data << "]" << std::endl;
+  std::cout << "I heard: [" << msg->buffer_length << "]" << std::endl;
+  for (size_t i = 0; i < msg->buffer_length; ++i) {
+    fprintf(stderr, "%02x ", msg->buffer[i]);
+  }
+  fprintf(stderr, "\n");
+}
+
+void chatterCallback(const std::shared_ptr<test_msgs::msg::Nested> msg)
+{
+  std::cout << "I heard: [" << msg->primitive_values.int32_value << "]" << std::endl;
 }
 
 int main(int argc, char * argv[])
@@ -49,8 +60,8 @@ int main(int argc, char * argv[])
   if (rcutils_cli_option_exist(argv, argv + argc, "-t")) {
     topic = std::string(rcutils_cli_get_option(argv, argv + argc, "-t"));
   }
-  auto sub = node->create_subscription<std_msgs::msg::String>(
-    topic, chatterCallback, rmw_qos_profile_default);
+  auto sub = node->create_subscription<test_msgs::msg::Nested>(
+    topic, chatterCallback_raw);
 
   rclcpp::spin(node);
 

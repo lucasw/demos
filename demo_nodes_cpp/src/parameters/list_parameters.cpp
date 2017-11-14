@@ -47,16 +47,17 @@ int main(int argc, char ** argv)
     rclcpp::parameter::ParameterVariant("foo.second", 42),
     rclcpp::parameter::ParameterVariant("foobar", true),
   });
+  fprintf(stderr, "done setting \n");
 
-  printf("Listing parameters...\n");
-  // List the details of a few parameters up to a namespace depth of 10.
-  auto parameters_and_prefixes = parameters_client->list_parameters({"foo", "bar"}, 10);
-  for (auto & name : parameters_and_prefixes.names) {
-    std::cout << "Parameter name: " << name << std::endl;
-  }
-  for (auto & prefix : parameters_and_prefixes.prefixes) {
-    std::cout << "Parameter prefix: " << prefix << std::endl;
-  }
+  //printf("Listing parameters...\n");
+  //// List the details of a few parameters up to a namespace depth of 10.
+  //auto parameters_and_prefixes = parameters_client->list_parameters({"foo", "bar"}, 10);
+  //for (auto & name : parameters_and_prefixes.names) {
+  //  std::cout << "Parameter name: " << name << std::endl;
+  //}
+  //for (auto & prefix : parameters_and_prefixes.prefixes) {
+  //  std::cout << "Parameter prefix: " << prefix << std::endl;
+  //}
 
   rclcpp::shutdown();
 

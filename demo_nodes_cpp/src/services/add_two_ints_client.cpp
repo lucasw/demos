@@ -20,9 +20,43 @@
 #include "rclcpp/rclcpp.hpp"
 #include "rcutils/cmdline_parser.h"
 
+#include "rcl_interfaces/srv/set_parameters.hpp"
 #include "example_interfaces/srv/add_two_ints.hpp"
+#include "test_msgs/srv/nested.hpp"
 
 using namespace std::chrono_literals;
+
+using srv_type = rcl_interfaces::srv::SetParameters;
+using srv_type_request = rcl_interfaces::srv::SetParameters_Request;
+
+void
+fill_request(std::shared_ptr<srv_type::Request> request)
+{
+  (void) request;
+  rcl_interfaces::msg::Parameter p;
+  p.name = "my_parameter_name";
+  rcl_interfaces::msg::ParameterValue pv;
+  pv.type = 2;
+  pv.integer_value = 13;
+  p.value = pv;
+  request->parameters.push_back(p);
+  //test_msgs::msg::Primitives p;
+  //p.int32_value = 32;
+  //p.float32_value = 32.32f;
+  //p.float64_value = 64.64f;
+  //int idx = 1;
+  //for (auto i = 0; i < idx+1; ++i) {
+  //  request->primitives.push_back(p);
+  //}
+}
+
+void
+print_response(const std::shared_ptr<srv_type::Response> response)
+{
+  (void) response;
+  std::cout << "Incoming response" << std::endl;
+  std::cout << "Primitive value " << response->results[0].reason << std::endl;
+}
 
 void print_usage()
 {
@@ -34,10 +68,11 @@ void print_usage()
 }
 
 // TODO(wjwwood): make this into a method of rclcpp::client::Client.
-example_interfaces::srv::AddTwoInts_Response::SharedPtr send_request(
+std::shared_ptr<srv_type::Response>
+send_request(
   rclcpp::Node::SharedPtr node,
-  rclcpp::client::Client<example_interfaces::srv::AddTwoInts>::SharedPtr client,
-  example_interfaces::srv::AddTwoInts_Request::SharedPtr request)
+  rclcpp::client::Client<srv_type>::SharedPtr client,
+  std::shared_ptr<srv_type::Request> request)
 {
   auto result = client->async_send_request(request);
   // Wait for the result.
@@ -65,11 +100,10 @@ int main(int argc, char ** argv)
   if (rcutils_cli_option_exist(argv, argv + argc, "-s")) {
     topic = std::string(rcutils_cli_get_option(argv, argv + argc, "-s"));
   }
-  auto client = node->create_client<example_interfaces::srv::AddTwoInts>(topic);
+  auto client = node->create_client<srv_type>(topic);
 
-  auto request = std::make_shared<example_interfaces::srv::AddTwoInts::Request>();
-  request->a = 2;
-  request->b = 3;
+  auto request = std::make_shared<srv_type::Request>();
+  fill_request(request);
 
   while (!client->wait_for_service(1s)) {
     if (!rclcpp::ok()) {
@@ -81,9 +115,9 @@ int main(int argc, char ** argv)
 
   // TODO(wjwwood): make it like `client->send_request(node, request)->sum`
   // TODO(wjwwood): consider error condition
-  auto result = send_request(node, client, request);
-  if (result) {
-    printf("Result of add_two_ints: %zd\n", result->sum);
+  auto response = send_request(node, client, request);
+  if (response) {
+    print_response(response);
   } else {
     printf("add_two_ints_client was interrupted. Exiting.\n");
   }
