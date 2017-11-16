@@ -51,8 +51,8 @@ int main(int argc, char * argv[])
     topic = std::string(rcutils_cli_get_option(argv, argv + argc, "-t"));
   }
 
-  //using MessageT = test_msgs::msg::DynamicArrayPrimitives;
-  using MessageT = std_msgs::msg::String;
+  using MessageT = test_msgs::msg::DynamicArrayPrimitives;
+  //using MessageT = std_msgs::msg::String;
   auto chatter_pub = node->create_publisher<MessageT>(topic, custom_qos_profile);
 
   rclcpp::WallRate loop_rate(2);
@@ -60,12 +60,12 @@ int main(int argc, char * argv[])
   auto msg = std::make_shared<MessageT>();
   test_msgs::msg::Primitives p;
   p.int32_value = 13;
-  //msg->int32_values.push_back(13);
-  auto i = 1;
+  msg->int32_values.push_back(13);
+  //auto i = 1;
 
   while (rclcpp::ok()) {
-    msg->data = "Hello World: " + std::to_string(i++);
-    printf("Publishing: '%s'\n", msg->data.c_str());
+    //msg->data = "Hello World: " + std::to_string(i++);
+    //printf("Publishing: '%s'\n", msg->data.c_str());
     chatter_pub->publish(msg);
     rclcpp::spin_some(node);
     loop_rate.sleep();
